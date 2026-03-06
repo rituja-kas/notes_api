@@ -4,7 +4,7 @@ You can create, update, read, and delete notes using FastAPI.
 
 
 **How to run the project.**
-1.clone the repository.
+1.clone the repository on "https://github.com/rituja-kas/notes_api"
 2.create the virtual environment and install dependencies.
 3.start the fastapi server:uvicorn main:app --reload
 4.open swagger UI to check the API's working:http://127.0.0.1:8000/docs
