@@ -6,12 +6,12 @@ import time
 API_URL = "https://notes-api-backend-mxqk.onrender.com"
 
 
-try:
-    response = requests.get(f"{API_URL}/notes/")
-    data = response.json()
-    st.write(data)
-except Exception as e:
-    st.error(f"❌ Connection error: {e}")
+# try:
+#     response = requests.get(f"{API_URL}")
+#     data = response.json()
+#     st.write(data)
+# except Exception as e:
+#     st.error(f"❌ Connection error: {e}")
 
 
 # Initialize session state
@@ -35,14 +35,19 @@ st.title("📝 Notes Management APP")
 menu = st.sidebar.selectbox("Select Operation",
                             ["➕ Add Note", "📋 Get All Notes", "🔍 Get Note by Id", "✏️ Update Note", "🗑️ Delete Note"])
 
+
+# ==================== ADD NOTE ====================
 # ==================== ADD NOTE ====================
 if menu == "➕ Add Note":
     st.header("➕ Add New Note")
 
+    # Use a counter to force refresh of input widgets
+    if "form_counter" not in st.session_state:
+        st.session_state.form_counter = 0
+
     # Fetch all notes to check for duplicates
     try:
-        response = requests.get(f"{API_URL}/all_notes/",
-                                headers={'Cache-Control': 'no-cache'})
+        response = requests.get(f"{API_URL}/all_notes/")
         if response.status_code == 200:
             existing_notes = response.json()["details"]
         else:
@@ -50,9 +55,15 @@ if menu == "➕ Add Note":
     except:
         existing_notes = []
 
-    # Use session state for input fields
-    title = st.text_input("Title", key="add_title", value=st.session_state.add_note_title)
-    content = st.text_area("Content", key="add_content", value=st.session_state.add_note_content, height=150)
+    # Create a unique key based on counter to force new widgets
+    title = st.text_input("Title",
+                          key=f"title_{st.session_state.form_counter}",
+                          placeholder="Enter note title...")
+
+    content = st.text_area("Content",
+                           key=f"content_{st.session_state.form_counter}",
+                           height=150,
+                           placeholder="Enter note content...")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -60,11 +71,12 @@ if menu == "➕ Add Note":
     with col2:
         clear_btn = st.button("🔄 Clear Form", use_container_width=True)
 
+    # Handle clear button
     if clear_btn:
-        st.session_state.add_note_title = ""
-        st.session_state.add_note_content = ""
+        st.session_state.form_counter += 1
         st.rerun()
 
+    # Handle add button
     if add_btn:
         if title.strip() == "":
             st.warning("⚠️ Please enter a note title")
@@ -74,8 +86,8 @@ if menu == "➕ Add Note":
             # Check for duplicate
             is_duplicate = False
             for note in existing_notes:
-                if note["title"].lower() == title.strip().lower() and note[
-                    "content"].lower() == content.strip().lower():
+                if note["title"].strip().lower() == title.strip().lower() and note[
+                    "content"].strip().lower() == content.strip().lower():
                     is_duplicate = True
                     break
 
@@ -87,22 +99,46 @@ if menu == "➕ Add Note":
                     "content": content.strip(),
                 }
                 try:
-                    response = requests.post(f"{API_URL}/notes/", json=payload)
+                    with st.spinner("Adding note..."):
+                        response = requests.post(f"{API_URL}/notes/", json=payload)
+
                     if response.status_code == 200:
+                        response_data = response.json()
                         st.success("✅ Note added successfully!")
                         st.balloons()
-                        # Clear the form
-                        st.session_state.add_note_title = ""
-                        st.session_state.add_note_content = ""
+
+                        # Show the added note details
+                        if "detail" in response_data:
+                            st.info(f"**Added Note - ID:** {response_data['detail']['id']}")
+                            st.info(f"**Title:** {response_data['detail']['title']}")
+
                         # Clear cached notes
                         st.session_state["all_notes"] = []
-                        st.session_state["last_update_time"] = time.time()
-                        time.sleep(1)
+                        st.session_state["last_update_time"] = 0
+
+                        # Increment counter to create new empty fields
+                        st.session_state.form_counter += 1
+
+                        # Show message that form is ready
+                        st.info("✨ Form cleared! You can now add another note.")
+
+                        # Rerun to show empty form
+                        time.sleep(2)
                         st.rerun()
                     else:
                         st.error(f"❌ Failed to add note: {response.text}")
+
                 except requests.exceptions.RequestException as e:
                     st.error(f"❌ Connection error: {e}")
+
+    # Show recent notes
+    with st.expander("📋 Recent Notes (to avoid duplicates)"):
+        if existing_notes:
+            recent_notes = existing_notes[-5:] if len(existing_notes) > 5 else existing_notes
+            for note in reversed(recent_notes):
+                st.text(f"ID: {note['id']} - {note['title']}")
+        else:
+            st.info("No notes yet")
 
 # ==================== GET ALL NOTES ====================
 elif menu == "📋 Get All Notes":
