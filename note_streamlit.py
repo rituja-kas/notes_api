@@ -2,7 +2,17 @@ import streamlit as st
 import requests
 import time
 
-App_url = "http://127.0.0.1:8000"
+# App_url = "http://127.0.0.1:8000"
+API_URL = "https://notes-api-backend-mxqk.onrender.com"
+
+
+try:
+    response = requests.get(f"{API_URL}/notes/")
+    data = response.json()
+    st.write(data)
+except Exception as e:
+    st.error(f"❌ Connection error: {e}")
+
 
 # Initialize session state
 if "note_title" not in st.session_state:
