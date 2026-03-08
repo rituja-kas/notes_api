@@ -41,7 +41,7 @@ if menu == "➕ Add Note":
 
     # Fetch all notes to check for duplicates
     try:
-        response = requests.get(f"{App_url}/all_notes/",
+        response = requests.get(f"{API_URL}/all_notes/",
                                 headers={'Cache-Control': 'no-cache'})
         if response.status_code == 200:
             existing_notes = response.json()["details"]
@@ -87,7 +87,7 @@ if menu == "➕ Add Note":
                     "content": content.strip(),
                 }
                 try:
-                    response = requests.post(f"{App_url}/notes/", json=payload)
+                    response = requests.post(f"{API_URL}/notes/", json=payload)
                     if response.status_code == 200:
                         st.success("✅ Note added successfully!")
                         st.balloons()
@@ -118,7 +118,7 @@ elif menu == "📋 Get All Notes":
     current_time = time.time()
     if refresh or not st.session_state["all_notes"] or (current_time - st.session_state["last_update_time"] > 5):
         try:
-            response = requests.get(f"{App_url}/all_notes/",
+            response = requests.get(f"{API_URL}/all_notes/",
                                     headers={'Cache-Control': 'no-cache'})
 
             if response.status_code == 200:
@@ -157,7 +157,7 @@ elif menu == "🔍 Get Note by Id":
     if get_btn and note_id:
         try:
             # Simple GET request without complex headers for in-memory storage
-            response = requests.get(f"{App_url}/notes/{int(note_id)}")
+            response = requests.get(f"{API_URL}/notes/{int(note_id)}")
 
             if response.status_code == 200:
                 note = response.json()["detail"]
@@ -205,7 +205,7 @@ elif menu == "✏️ Update Note":
     # Fetch note when button is clicked
     if fetch_btn and note_id:
         try:
-            response = requests.get(f"{App_url}/notes/{int(note_id)}")
+            response = requests.get(f"{API_URL}/notes/{int(note_id)}")
 
             if response.status_code == 200:
                 note = response.json()["detail"]
@@ -265,7 +265,7 @@ elif menu == "✏️ Update Note":
 
                     # Send update request
                     response = requests.put(
-                        f"{App_url}/update_notes/{int(st.session_state['current_note_id'])}",
+                        f"{API_URL}/update_notes/{int(st.session_state['current_note_id'])}",
                         json=payload
                     )
 
@@ -311,7 +311,7 @@ elif menu == "🗑️ Delete Note":
         try:
             # First check if note exists
             check_response = requests.get(
-                f"{App_url}/notes/{int(note_id)}",
+                f"{API_URL}/notes/{int(note_id)}",
                 headers={'Cache-Control': 'no-cache'}
             )
 
@@ -330,7 +330,7 @@ elif menu == "🗑️ Delete Note":
                 if confirm:
                     delete_btn = st.button("🗑️ Delete Note", type="primary", use_container_width=True)
                     if delete_btn:
-                        response = requests.delete(f"{App_url}/delete_notes/{int(note_id)}")
+                        response = requests.delete(f"{API_URL}/delete_notes/{int(note_id)}")
                         if response.status_code == 200:
                             st.success("✅ Note deleted successfully!")
                             st.balloons()
