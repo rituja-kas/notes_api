@@ -46,10 +46,11 @@ async def notes(id:int,note:NoteUpdate):
             "status_code": 200,
             "status":"success",
             "message":"note updated successfully",
+            "detail": updated_note
         }
     raise HTTPException(status_code=404,detail="note not found")
 
-
+    
 @app.delete('/delete_notes/{id}')
 async def notes(id:int):
     note  =  get_note_by_id(id)

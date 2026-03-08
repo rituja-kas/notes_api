@@ -21,11 +21,11 @@ def get_note_by_id(note_id:int):
 def update_note(note_id:int,note: NoteUpdate):
     for existing_note in notes:
         if existing_note["id"] == note_id:
-            if note.title is not None:
-                existing_note['title'] = note.title
-            if note.content is not None:
-                existing_note["content"] = note.content
-        return existing_note
+            if note.new_title is not None:
+                existing_note['title'] = note.new_title
+            if note.new_content is  not None:
+                existing_note["content"] = note.new_content
+            return existing_note
     return None
 
 
